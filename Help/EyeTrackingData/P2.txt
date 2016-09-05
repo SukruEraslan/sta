@@ -1,0 +1,4 @@
+Index	Time	Duration	XPoint	YPoint	PageName
+0	0	150	557	500	http://ncc.metu.edu.tr/
+1	150	250	478	569	http://ncc.metu.edu.tr/
+2	401	817	499	501	http://ncc.metu.edu.tr/

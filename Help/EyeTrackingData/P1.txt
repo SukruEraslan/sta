@@ -1,0 +1,4 @@
+Index	Time	Duration	XPoint	YPoint	PageName
+0	0	150	557	500	http://www.[...].com/
+1	150	250	478	569	http://www.[...].com/
+2	401	817	499	501	http://www.[...].com/
