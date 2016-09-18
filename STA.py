@@ -319,7 +319,10 @@ for y in range (0 , len (keys)):
 mySequences_num = {}
 keys = mySequences.keys()
 for y in range (0 , len (keys)):
-    mySequences_num[keys[y]] = getNumberedSequence(mySequences[keys[y]])
+    if (len(mySequences[keys[y]])!=0):
+        mySequences_num[keys[y]] = getNumberedSequence(mySequences[keys[y]])
+    else:
+        mySequences_num[keys[y]] = []
 	
 myImportanceThreshold = calculateImportanceThreshold(mySequences_num)
 myImportantAoIs = updateAoIsFlag(getNumberDurationOfAoIs(mySequences_num), myImportanceThreshold)
