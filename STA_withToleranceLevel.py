@@ -6,18 +6,17 @@ from random import randint
 from pylab import *
 
 # STA Algorithm - PARAMETERS
-# STA Algorithm - PARAMETERS
-SegmentationPath = "Help/Segmentation"	#Provide the link for the segmentation file without the .txt extension. See example file 'Apple.txt'.
-EyeTrackingURL = "http://emine.ncc.metu.edu.tr/survey/web/pages2/http/www.apple.com/"	#Provide the link for the related page
-EyeTrackingPath = "Help/EyeTrackingData/"	#Provide the link for the folder that includes eye tracking data for each participant. See example folder 'EyeTrackingData'.
-pList =	[1,2] #Provide the list of participant IDs, such as [3,4,15,18,21,23,31,32,33,38]
-degreeOfAccuracy = 0.5	#Provide the degree of accuracy of an eye tracker, such as 0.5.
-distanceBetweenEyeTrackerAndParticipants = 60	#Provide the distance between the eye tracker and the participants in centimeters, such as 60.
-resolutionOfScreenX = 1280	#Provide the X resolution of the screen, such as 1280.
-resolutionOfScreenY = 1024	#Provide the Y resolution of the screen, such as 1024.
-sizeOfScreen =	17 #Provide the size of the screen in inches, such as 17.
-toleranceLevel = 1.00 #Provide the tolerance level between 0 and 1 [0.00, 0.01...1.00]
-highestFidelity = True #Find an find an appropriate tolerance level for achieving the highest fidelity to individual scanpaths based on the input.
+SegmentationPath = 	#Provide the link for the segmentation file without the .txt extension. See example file 'Apple.txt'.
+EyeTrackingURL = 	#Provide the link for the related page
+EyeTrackingPath = 	#Provide the link for the folder that includes eye tracking data for each participant. See example folder 'EyeTrackingData'.
+pList =	 #Provide the list of participant IDs, such as [3,4,15,18,21,23,31,32,33,38]
+degreeOfAccuracy = 	#Provide the degree of accuracy of an eye tracker, such as 0.5.
+distanceBetweenEyeTrackerAndParticipants = 	#Provide the distance between the eye tracker and the participants in centimeters, such as 60.
+resolutionOfScreenX = 	#Provide the X resolution of the screen, such as 1280.
+resolutionOfScreenY = 	#Provide the Y resolution of the screen, such as 1024.
+sizeOfScreen =	 #Provide the size of the screen in inches, such as 17.
+toleranceLevel =  #Provide the tolerance level between 0 and 1 [0.00, 0.01...1.00]
+highestFidelity =  #Find an find an appropriate tolerance level for achieving the highest fidelity to individual scanpaths based on the input.
 
 def getParticipants (pList, Path, pageName):
     Participants = {}
@@ -167,8 +166,7 @@ def calculateImportanceThreshold (mySequences, Threshold):
             commonAoIs.append(myAoIdetail)
 
     if len (commonAoIs) == 0:
-        print "No shared instances!"
-        exit(1)
+        return -1
     
     minValueCounter = commonAoIs[0][1]
     for AoIdetails in commonAoIs:
@@ -207,22 +205,25 @@ def updateAoIsFlag(AoIs, threshold):
     return AoIs
 
 def removeInsignificantAoIs(Sequences, AoIList):
+    sequences = Sequences.copy()
     significantAoIs = []
     for AoI in AoIList:
         if AoI [3] == True:
             significantAoIs.append(AoI[0])
 
-    keys = Sequences.keys()
+    keys = sequences.keys()
     for y in range (0 , len (keys)):
         temp = []
-        for k in range (0, len(Sequences[keys[y]])):
+        for k in range (0, len(sequences[keys[y]])):
             try:
-                significantAoIs.index(Sequences[keys[y]][k][0:2])
-                temp.append(Sequences[keys[y]][k])
+                significantAoIs.index(sequences[keys[y]][k][0:2])
+                temp.append(sequences[keys[y]][k])
             except:
                 continue
-        Sequences[keys[y]] = temp
-    return Sequences
+        if len(temp) == 0:
+            return -1
+        sequences[keys[y]] = temp
+    return sequences
 
 def getExistingAoIList (Sequences):
     AoIlist = []
@@ -274,10 +275,9 @@ def calculateTotalNumberDurationofFixationsandNSV(AoIList, Sequences):
                      counter = counter + Sequences[keys[y]][k][2]
                      duration = duration + Sequences[keys[y]][k][3]
                      totalNSV = totalNSV + Sequences[keys[y]][k][4]
-                     flag = flag + 1
+                     flag = flag + 1 
 
         AoIList[x] = AoIList[x] + [counter] + [duration]  + [totalNSV] + [flag]
-
     return AoIList
 
 def getValueableAoIs (AoIList, Threshold):
@@ -369,7 +369,7 @@ for y in range (0 , len (keys)):
 mySequences_num = {}
 keys = mySequences.keys()
 for y in range (0 , len (keys)):
-    print keys[y], mySequences[keys[y]]
+    #print keys[y], mySequences[keys[y]]
     if (len(mySequences[keys[y]])!=0):
         mySequences_num[keys[y]] = getNumberedSequence(mySequences[keys[y]])
     else:
@@ -378,54 +378,64 @@ for y in range (0 , len (keys)):
 if highestFidelity is not True:
     ToleranceThreshold = toleranceLevel * len(keys)		
     myImportanceThreshold = calculateImportanceThreshold(mySequences_num, ToleranceThreshold)
-    myImportantAoIs = updateAoIsFlag(getNumberDurationOfAoIs(mySequences_num), myImportanceThreshold)
-    myNewSequences = removeInsignificantAoIs(mySequences_num, myImportantAoIs)
+    if myImportanceThreshold != -1:
+        myImportantAoIs = updateAoIsFlag(getNumberDurationOfAoIs(mySequences_num), myImportanceThreshold)
+        myNewSequences = removeInsignificantAoIs(mySequences_num, myImportantAoIs)
+        if myNewSequences == -1:
+            print "Trending Path:", []
+        else:
+            #Second-Pass
+            myNewAoIList = getExistingAoIList(myNewSequences)
+            myNewAoIList = calculateTotalNumberDurationofFixationsandNSV(myNewAoIList, calculateNumberDurationOfFixationsAndNSV(myNewSequences))
+            myFinalList = getValueableAoIs(myNewAoIList, ToleranceThreshold)
+            myFinalList.sort( key = lambda x: (x[4], x[3], x[2]))
+            myFinalList.reverse()
 
-    #Second-Pass
-    myNewAoIList = getExistingAoIList(myNewSequences)
-    myNewAoIList = calculateTotalNumberDurationofFixationsandNSV(myNewAoIList, calculateNumberDurationOfFixationsAndNSV(myNewSequences))
-    myFinalList = getValueableAoIs(myNewAoIList, ToleranceThreshold)
-    myFinalList.sort( key = lambda x: (x[4], x[3], x[2]))
-    myFinalList.reverse()
-
-    commonSequence = []
-    for y in range (0, len(myFinalList)):
-        commonSequence.append(myFinalList[y][0])
-        
-    trendingPath = getAbstractedSequence(commonSequence)
-    print "Trending Path:", trendingPath
+            commonSequence = []
+            for y in range (0, len(myFinalList)):
+                commonSequence.append(myFinalList[y][0])
+                
+            trendingPath = getAbstractedSequence(commonSequence)
+            print "Trending Path:", trendingPath
+    else:
+        print "Trending Path:", []
 else:
     tolerantPaths = []
     for toleranceLevel in [float(j) / 100 for j in range(0, 101)]:
         ToleranceThreshold = toleranceLevel * len(keys)		
         myImportanceThreshold = calculateImportanceThreshold(mySequences_num, ToleranceThreshold)
-        myImportantAoIs = updateAoIsFlag(getNumberDurationOfAoIs(mySequences_num), myImportanceThreshold)
-        myNewSequences = removeInsignificantAoIs(mySequences_num, myImportantAoIs)
+        if myImportanceThreshold != -1:
+            myImportantAoIs = updateAoIsFlag(getNumberDurationOfAoIs(mySequences_num), myImportanceThreshold)
+            myNewSequences = removeInsignificantAoIs(mySequences_num, myImportantAoIs)
+            if myNewSequences == -1:
+                tolerantPaths.append([[],calculateAverageSimilarity(myNewNormalSequences_Temp, []), toleranceLevel])
+            else:
+                #Second-Pass
+                myNewAoIList = getExistingAoIList(myNewSequences)
+                myNewAoIList = calculateTotalNumberDurationofFixationsandNSV(myNewAoIList, calculateNumberDurationOfFixationsAndNSV(myNewSequences))
+                myFinalList = getValueableAoIs(myNewAoIList, ToleranceThreshold)
+                myFinalList.sort( key = lambda x: (x[4], x[3], x[2]))
+                myFinalList.reverse()
 
-        #Second-Pass
-        myNewAoIList = getExistingAoIList(myNewSequences)
-        myNewAoIList = calculateTotalNumberDurationofFixationsandNSV(myNewAoIList, calculateNumberDurationOfFixationsAndNSV(myNewSequences))
-        myFinalList = getValueableAoIs(myNewAoIList, ToleranceThreshold)
-        myFinalList.sort( key = lambda x: (x[4], x[3], x[2]))
-        myFinalList.reverse()
+                commonSequence = []
+                for y in range (0, len(myFinalList)):
+                    commonSequence.append(myFinalList[y][0])
+		
+                trendingPath = getAbstractedSequence(commonSequence)
+            
+                myNewNormalSequences_Temp = {}
+                myNewNormalSequences_Temp = getAbstractedSequences(mySequences)
 
-        commonSequence = []
-        for y in range (0, len(myFinalList)):
-            commonSequence.append(myFinalList[y][0])
-        
-        trendingPath = getAbstractedSequence(commonSequence)
-    
-        myNewNormalSequences_Temp = {}
-        myNewNormalSequences_Temp = getAbstractedSequences(mySequences)
-
-        keys = myNewNormalSequences_Temp.keys()
-        for y in range (0 , len (keys)):
-            tempSequence = []
-            for z in range (0, len(myNewNormalSequences_Temp[keys[y]])):
-                tempSequence.append(myNewNormalSequences_Temp[keys[y]][z][0])
-            myNewNormalSequences_Temp[keys[y]] = getAbstractedSequence(tempSequence)
-    
-        tolerantPaths.append([trendingPath,calculateAverageSimilarity(myNewNormalSequences_Temp, trendingPath),toleranceLevel])
+                keys = myNewNormalSequences_Temp.keys()
+                for y in range (0 , len (keys)):
+                    tempSequence = []
+                    for z in range (0, len(myNewNormalSequences_Temp[keys[y]])):
+                        tempSequence.append(myNewNormalSequences_Temp[keys[y]][z][0])
+                    myNewNormalSequences_Temp[keys[y]] = getAbstractedSequence(tempSequence)
+            
+                tolerantPaths.append([trendingPath, calculateAverageSimilarity(myNewNormalSequences_Temp, trendingPath),toleranceLevel])
+        else:
+            tolerantPaths.append([[],calculateAverageSimilarity(myNewNormalSequences_Temp, []), toleranceLevel])
     tolerantPaths.sort( key = lambda x: x[1])
     tolerantPaths.reverse()
     print "Trending Path:", tolerantPaths[0][0]
