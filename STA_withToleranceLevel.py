@@ -6,15 +6,15 @@ from random import randint
 from pylab import *
 
 # STA Algorithm - PARAMETERS
-SegmentationPath = 	#Provide the link for the segmentation file without the .txt extension. See example file 'Apple.txt'.
-EyeTrackingURL = 	#Provide the link for the related page
-EyeTrackingPath = 	#Provide the link for the folder that includes eye tracking data for each participant. See example folder 'EyeTrackingData'.
-pList =	 #Provide the list of participant IDs, such as [3,4,15,18,21,23,31,32,33,38]
+SegmentationPath =  #Provide the link for the segmentation file without the .txt extension. See example file 'Segmentation.txt'.
+EyeTrackingURL =  	#Provide the link for the related page
+EyeTrackingPath =  #Provide the link for the folder that includes eye tracking data for each participant. See example folder 'EyeTrackingData'.
+pList =	  #Provide the list of participant IDs, such as [3,4,15,18,21,23,31,32,33,38]
 degreeOfAccuracy = 	#Provide the degree of accuracy of an eye tracker, such as 0.5.
 distanceBetweenEyeTrackerAndParticipants = 	#Provide the distance between the eye tracker and the participants in centimeters, such as 60.
 resolutionOfScreenX = 	#Provide the X resolution of the screen, such as 1280.
 resolutionOfScreenY = 	#Provide the Y resolution of the screen, such as 1024.
-sizeOfScreen =	 #Provide the size of the screen in inches, such as 17.
+sizeOfScreen = 	 #Provide the size of the screen in inches, such as 17.
 toleranceLevel =  #Provide the tolerance level between 0 and 1 [0.00, 0.01...1.00]
 highestFidelity =  #Find an find an appropriate tolerance level for achieving the highest fidelity to individual scanpaths based on the input.
 
