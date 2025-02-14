@@ -50,7 +50,7 @@ def getPaths(filename):
         f_communication = int(fields[17])
         f_confidence = int(fields[18])
         f_selfRegulation = int(fields[19])
-        f_performance = int(fields[21])
+        f_performance = fields[21]
 
         if (int(object) < 0):
             continue
