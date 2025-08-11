@@ -1,6 +1,9 @@
 import string
+import statistics
+import copy
 
 #Parameters - 0 means all
+#in this version, goal cannot be changed!
 goal = 0
 achievement = 0
 focus  = 0
@@ -11,6 +14,7 @@ performance = 0
 
 #STA Parameters
 globalToleranceLevel = 0.75
+optimisedToleranceLevel = True
 dataFile = "data.txt"
 
 #Program Global Variables
@@ -44,18 +48,23 @@ def getPaths(filename):
         fields = record.split("\t")
         participant, duration, object  = fields[0], fields[5], fields[6]
 
-        f_goal = int(fields[14])
-        f_achievement = int(fields[15])
-        f_focus = int(fields[16])
-        f_communication = int(fields[17])
-        f_confidence = int(fields[18])
-        f_selfRegulation = int(fields[19])
-        f_performance = fields[21]
+        f_goal = int(fields[15])
+        f_achievement = int(fields[16])
+        f_focus = int(fields[17])
+        f_communication = int(fields[18])
+        f_confidence = int(fields[19])
+        f_selfRegulation = int(fields[20])
+        f_performance = fields[22]
 
         if (int(object) < 0):
             continue
         else:
-            object = string.ascii_uppercase[int(object)]
+            #Object 4 is not available!
+            if int(object) >= 5:
+                object = int(object) - 1
+            else:
+                object = int(object)
+            object = string.ascii_uppercase[object]
             if object not in AoINames:
                 AoINames.append(object)
 
@@ -304,6 +313,51 @@ def getValueableAoIs(AoIList, Threshold):
 
     return valuableAoIs
 
+def getStringEditDistance(Sequence1, Sequence2):
+    distance = 0
+    matrix = []
+
+    for k in range(0, len(Sequence1) + 1):
+        matrix.append([])
+        for g in range(0, len(Sequence2) + 1):
+            matrix[k].append(0)
+
+    for k in range(0, len(Sequence1) + 1):
+        matrix[k][0] = k
+
+    for g in range(0, len(Sequence2) + 1):
+        matrix[0][g] = g
+
+    for g in range(1, len(Sequence2) + 1):
+        for k in range(1, len(Sequence1) + 1):
+            if Sequence1[k - 1] == Sequence2[g - 1]:
+                matrix[k][g] = min(matrix[k - 1][g - 1] + 0, matrix[k][g - 1] + 1, matrix[k - 1][g] + 1)
+            else:
+                matrix[k][g] = min(matrix[k - 1][g - 1] + 1, matrix[k][g - 1] + 1, matrix[k - 1][g] + 1)
+    distance = matrix[len(Sequence1)][len(Sequence2)]
+    return distance
+
+def computeSimilarity(sequences, trendingScanpath):
+    trendingPath = "".join(trendingScanpath)
+    distancelist = []
+    for sequence in sequences:
+        distance = getStringEditDistance(sequence, trendingPath)
+        normalisedScore =  distance/float(max (len (sequence), len(trendingPath)))
+        similarity = 100.0 * (1 - normalisedScore)
+        distancelist.append(similarity)
+    return statistics.median(distancelist)
+
+def getStringSequences(sequences):
+    stringseqs = copy.deepcopy(sequences)
+    strings = []
+    for s in stringseqs.values():
+        seq = ""
+        for item in s:
+            if len(seq) == 0 or seq[-1] != item[0]:
+                seq += item[0]
+        strings.append(seq)
+    return strings
+
 #STA function
 def STA(mySequences, toleranceLevel):
     # STA Algorithm
@@ -341,12 +395,28 @@ def STA(mySequences, toleranceLevel):
 
 #Main function to use STA
 if __name__ == "__main__":
+    if goal != 0:
+        print("Goal has to be zero!")
+        exit(1)
+
     sequences = getPaths(dataFile)
-    STA_output = STA(sequences, globalToleranceLevel)
+    stringSequences = getStringSequences(sequences)
+
+    if optimisedToleranceLevel == False:
+        STA_output = STA(sequences, globalToleranceLevel)
+    else:
+        print("Please wait for optimising the tolerance level...")
+        STA_outputs = []
+        for i in range (0,100):
+            sequences_copy = copy.deepcopy(sequences)
+            localToleranceLevel = i/100
+            STA_localoutput = STA(sequences_copy, localToleranceLevel)
+            STA_outputs.append([STA_localoutput, computeSimilarity(stringSequences, STA_localoutput), localToleranceLevel])
+        STA_outputs.sort(key = lambda x: x[1], reverse=True)
+        STA_output, STA_toleranceLevel = STA_outputs[0][0], STA_outputs[0][2]
+        print("Optimised Tolerance Level: ", STA_toleranceLevel)
+
     trendingpath = []
     for item in STA_output:
         trendingpath.append(getAOIMeaning(item))
     print(trendingpath)
-
-
-
