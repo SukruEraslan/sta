@@ -11,6 +11,8 @@ communication = 0
 confidence = 0
 selfRegulation = 0
 performance = 0
+simType = 0
+simYear = 0
 
 #STA Parameters
 globalToleranceLevel = 0.75
@@ -27,14 +29,21 @@ def getAOIMeaning(key):
     AOI_Meanings["B"] = "clipboard"
     AOI_Meanings["C"] = "nursing instructor"
     AOI_Meanings["D"] = "patient"
-    AOI_Meanings["E"] = "vitals monitor"
-    AOI_Meanings["F"] = "patient history screen"
-    AOI_Meanings["G"] = "calculator"
-    AOI_Meanings["H"] = "thermometer"
-    AOI_Meanings["I"] = "syringe"
-    AOI_Meanings["J"] = "med bottle"
-    AOI_Meanings["K"] = "IV pump"
-    AOI_Meanings["L"] = "oxygen bottle"
+    #Object 4 is not known!
+    AOI_Meanings["E"] = "none"
+    AOI_Meanings["F"] = "vitals monitor"
+    AOI_Meanings["G"] = "patient history screen"
+    AOI_Meanings["H"] = "calculator"
+    AOI_Meanings["I"] = "thermometer"
+    AOI_Meanings["J"] = "syringe"
+    AOI_Meanings["K"] = "med bottle"
+    AOI_Meanings["L"] = "IV pump"
+    AOI_Meanings["M"] = "oxygen bottle"
+    AOI_Meanings["N"] = "nursing student"
+    AOI_Meanings["O"] = "nursing student"
+    AOI_Meanings["P"] = "IV Bag"
+    AOI_Meanings["Q"] = "prescription medicine screen"
+    AOI_Meanings["R"] = "landline phone"
 
     return AOI_Meanings[key]
 
@@ -55,15 +64,17 @@ def getPaths(filename):
         f_confidence = int(fields[19])
         f_selfRegulation = int(fields[20])
         f_performance = fields[22]
+        f_simType = int(fields[23])
+        f_simYear = int(fields[24])
 
         if (int(object) < 0):
             continue
         else:
-            #Object 4 is not available!
-            if int(object) >= 5:
-                object = int(object) - 1
-            else:
-                object = int(object)
+            object = int(object)
+            #Consider object 14 and object 13 together in STA
+            if object == 14:
+            	object = 13
+
             object = string.ascii_uppercase[object]
             if object not in AoINames:
                 AoINames.append(object)
@@ -88,6 +99,10 @@ def getPaths(filename):
         if selfRegulation != 0 and selfRegulation != f_selfRegulation:
             toRemove = True
         if performance != 0 and performance != f_performance:
+            toRemove = True
+        if simType != 0 and simType != f_simType:
+            toRemove = True
+        if simYear != 0 and simYear != f_simYear:
             toRemove = True
 
         if toRemove == True:
