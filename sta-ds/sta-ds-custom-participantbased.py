@@ -17,6 +17,7 @@ simYear = 0
 #STA Parameters
 globalToleranceLevel = 0.75
 optimisedToleranceLevel = True
+minToleranceLevelForOptimisation = 0.50
 dataFile = "data.txt"
 
 #Program Global Variables
@@ -360,7 +361,7 @@ def computeSimilarity(sequences, trendingScanpath):
         normalisedScore =  distance/float(max (len (sequence), len(trendingPath)))
         similarity = 100.0 * (1 - normalisedScore)
         distancelist.append(similarity)
-    return statistics.median(distancelist)
+    return [statistics.median(distancelist), statistics.mean(distancelist), statistics.stdev(distancelist), min(distancelist), max(distancelist)]
 
 def getStringSequences(sequences):
     stringseqs = copy.deepcopy(sequences)
@@ -422,14 +423,21 @@ if __name__ == "__main__":
     else:
         print("Please wait for optimising the tolerance level...")
         STA_outputs = []
-        for i in range (0,100):
+        for i in range (int(minToleranceLevelForOptimisation*100),100):
             sequences_copy = copy.deepcopy(sequences)
             localToleranceLevel = i/100
             STA_localoutput = STA(sequences_copy, localToleranceLevel)
             STA_outputs.append([STA_localoutput, computeSimilarity(stringSequences, STA_localoutput), localToleranceLevel])
-        STA_outputs.sort(key = lambda x: x[1], reverse=True)
+        STA_outputs.sort(key = lambda x: (x[1][0], x[2]) , reverse=True)
         STA_output, STA_toleranceLevel = STA_outputs[0][0], STA_outputs[0][2]
+        STA_median, STA_mean, STA_stdev, STA_min, STA_max = STA_outputs[0][1][0], STA_outputs[0][1][1], STA_outputs[0][1][2], STA_outputs[0][1][3], STA_outputs[0][1][4]
         print("Optimised Tolerance Level: ", STA_toleranceLevel)
+        print("Similarity to the Individual Paths: ")
+        print(f"Median: {STA_median:.2f}")
+        print(f"Mean: {STA_mean:.2f}")
+        print(f"Std Dev: {STA_stdev:.2f}")
+        print(f"Min: {STA_min:.2f}")
+        print(f"Max: {STA_max:.2f}")
 
     trendingpath = []
     for item in STA_output:
