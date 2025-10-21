@@ -4,7 +4,7 @@ import copy
 
 #Parameters - 0 means all
 #In the event-based version, goal cannot be zero!
-goal = 1
+goal = 4
 achievement = 0
 focus  = 0
 communication = 0
@@ -18,7 +18,7 @@ simYear = 0
 globalToleranceLevel = 0.75
 optimisedToleranceLevel = True
 minToleranceLevelForOptimisation = 0.50
-dataFile = "data.txt"
+dataFile = "data2.txt"
 
 #Program Global Variables
 AoINames = []
@@ -373,7 +373,10 @@ def computeSimilarity(sequences, trendingScanpath):
         normalisedScore =  distance/float(max (len (sequence), len(trendingPath)))
         similarity = 100.0 * (1 - normalisedScore)
         distancelist.append(similarity)
-    return [statistics.median(distancelist), statistics.mean(distancelist), statistics.stdev(distancelist), min(distancelist), max(distancelist)]
+    if len(distancelist) == 1:
+    	return [statistics.median(distancelist), statistics.mean(distancelist), "NA", min(distancelist), max(distancelist)]
+    else:
+    	return [statistics.median(distancelist), statistics.mean(distancelist), statistics.stdev(distancelist), min(distancelist), max(distancelist)]
 
 def getStringSequences(sequences):
     stringseqs = copy.deepcopy(sequences)
@@ -429,6 +432,9 @@ if __name__ == "__main__":
 
     sequences = getPaths(dataFile)
     stringSequences = getStringSequences(sequences)
+    print(list(sequences.keys()))
+    print(len(stringSequences))
+    exit(1)
 
     if optimisedToleranceLevel == False:
         STA_output = STA(sequences, globalToleranceLevel)
@@ -447,7 +453,7 @@ if __name__ == "__main__":
         print("Similarity to the Individual Paths: ")
         print(f"Median: {STA_median:.2f}")
         print(f"Mean: {STA_mean:.2f}")
-        print(f"Std Dev: {STA_stdev:.2f}")
+        print(f"Std Dev: {STA_stdev}")
         print(f"Min: {STA_min:.2f}")
         print(f"Max: {STA_max:.2f}")
 
